@@ -1,0 +1,624 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Cipher Sprint (Prototype)</title>
+  <style>
+    body{
+      margin:0;
+      font-family:system-ui;
+      background:#0b0f17;
+      color:white;
+      display:flex;
+      justify-content:center;
+    }
+    .app{ width:100%; max-width:420px; padding:16px; }
+
+    /* HUD */
+    .topRow{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+    .pill{
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.08);
+      color: rgba(255,255,255,.85);
+      white-space:nowrap;
+    }
+    .hudRight{ display:flex; gap:10px; align-items:center; }
+    .timerPill{
+      border-color: rgba(245,158,11,.28);
+      background: rgba(245,158,11,.12);
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
+      min-width:78px;
+      text-align:center;
+    }
+    .scorePill{
+      border-color: rgba(96,165,250,.28);
+      background: rgba(96,165,250,.12);
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
+      min-width:78px;
+      text-align:center;
+    }
+
+    /* Hot/Cold Glow (TONED DOWN) */
+    .cipherWrap{
+      --heat: 0; /* 0 cold -> 1 hot */
+      margin-top:8px;
+      border-radius:22px;
+      padding:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(900px 360px at 50% 0%,
+          rgba(96,165,250, calc(0.10 + (1 - var(--heat)) * 0.18)),
+          transparent 62%),
+        radial-gradient(900px 360px at 50% 100%,
+          rgba(239,68,68, calc(0.06 + var(--heat) * 0.22)),
+          transparent 62%),
+        rgba(255,255,255,.06);
+      box-shadow:
+        0 0 26px rgba(96,165,250, calc((1 - var(--heat)) * 0.35)),
+        0 0 30px rgba(239,68,68, calc(var(--heat) * 0.45));
+      transition: background 110ms ease, box-shadow 110ms ease;
+    }
+
+    /* Cipher display stays ciphertext */
+    .cipherBox{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size:34px;
+      text-align:center;
+      letter-spacing:6px;
+      padding:18px 10px;
+      border-radius:18px;
+      background:rgba(0,0,0,.20);
+      border:1px solid rgba(255,255,255,.12);
+      user-select:none;
+      cursor:grab;
+      touch-action: pan-y;
+      transition: transform .12s ease;
+    }
+    .cipherBox:active{ cursor:grabbing; }
+
+    .preview{
+      text-align:center;
+      margin-top:10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      letter-spacing:4px;
+      font-size:18px;
+      color: rgba(255,255,255,.88);
+      min-height: 24px;
+    }
+
+    .shiftRow{
+      margin-top:12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .shiftLabel{
+      flex:1;
+      text-align:center;
+      font-size:13px;
+      color: rgba(255,255,255,.70);
+      font-variant-numeric: tabular-nums;
+      white-space:nowrap;
+    }
+    .arrowBtn{
+      width:46px;
+      height:40px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.20);
+      background:rgba(255,255,255,.10);
+      color:white;
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;
+    }
+    .arrowBtn:active{ transform: scale(.97); }
+
+    /* Difficulty */
+    .diffRow{ margin-top:12px; }
+    .diffTitle{
+      font-size:12px;
+      color: rgba(255,255,255,.70);
+      margin-bottom:6px;
+    }
+    .segmented{
+      display:flex;
+      gap:6px;
+      padding:6px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.18);
+    }
+    .segmented button{
+      flex:1;
+      height:36px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.08);
+      color:white;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .segmented button.active{
+      border-color: rgba(245,158,11,.45);
+      background: rgba(245,158,11,.18);
+    }
+    .hint{
+      margin-top:10px;
+      font-size:12px;
+      color: rgba(255,255,255,.60);
+      text-align:center;
+    }
+
+    /* Slots */
+    .slots{
+      margin-top:18px;
+      display:flex;
+      justify-content:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .slot{
+      width:42px;
+      height:50px;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size:20px;
+      font-weight:900;
+      border:1px solid rgba(255,255,255,.20);
+      background:rgba(255,255,255,.06);
+    }
+    .slot.ok{
+      border-color:#22c55e;
+      background:rgba(34,197,94,.18);
+    }
+
+    /* Bank */
+    .bank{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:8px;
+    }
+    .key{
+      height:44px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.20);
+      background:rgba(255,255,255,.10);
+      color:white;
+      font-weight:900;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size:16px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .key:active{ transform:scale(.96); }
+
+    .controls{
+      margin-top:16px;
+      display:flex;
+      gap:10px;
+    }
+    .control{
+      flex:1;
+      height:44px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.20);
+      background:rgba(255,255,255,.10);
+      color:white;
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;
+    }
+    .control:active{ transform:scale(.98); }
+    .disabled{
+      opacity: .55;
+      pointer-events:none;
+      filter: grayscale(0.2);
+    }
+
+    /* Toast */
+    .toast{
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 18px;
+      background: rgba(0,0,0,.62);
+      border:1px solid rgba(255,255,255,.16);
+      color: white;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      backdrop-filter: blur(10px);
+      opacity: 0;
+      pointer-events:none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+    .toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-6px);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topRow">
+      <div class="pill" id="roundPill">Caesar Sprint · word 1/8</div>
+      <div class="hudRight">
+        <div class="pill timerPill" id="timerPill">01:30</div>
+        <div class="pill scorePill" id="scorePill">0</div>
+      </div>
+    </div>
+
+    <div class="cipherWrap" id="cipherWrap">
+      <div class="cipherBox" id="cipherBox" aria-label="Swipe or drag to change shift">----</div>
+      <div class="preview" id="preview">_ _ _ _</div>
+
+      <div class="shiftRow">
+        <button class="arrowBtn" id="leftBtn" aria-label="Shift left">←</button>
+        <div class="shiftLabel" id="shiftLabel">Shift: 0</div>
+        <button class="arrowBtn" id="rightBtn" aria-label="Shift right">→</button>
+      </div>
+
+      <div class="diffRow">
+        <div class="diffTitle">Difficulty</div>
+        <div class="segmented" role="group" aria-label="Difficulty">
+          <button id="easyBtn" class="active">Easy</button>
+          <button id="medBtn">Medium</button>
+          <button id="hardBtn">Hard</button>
+        </div>
+      </div>
+
+      <div class="hint" id="hintLine">Easy reveals 3 letters · Medium 2 · Hard 1 (vowel-first)</div>
+    </div>
+
+    <div class="slots" id="slots"></div>
+    <div class="bank" id="bank"></div>
+
+    <div class="controls">
+      <button class="control" id="backBtn">⌫</button>
+      <button class="control" id="clearBtn">Clear</button>
+      <button class="control" id="skipBtn">Skip</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Solved!</div>
+
+<script>
+  // ---- Caesar-only run (answer + shift). Cipher is generated -> always consistent.
+  const puzzles = [
+    { answer:"THIS",   shift:5 },
+    { answer:"MAX",    shift:7 },
+    { answer:"SECRET", shift:5 },
+    { answer:"CLEAN",  shift:5 },
+    { answer:"PROUD",  shift:5 },
+    { answer:"HELLO",  shift:1 },
+    { answer:"DOG",    shift:3 },
+    { answer:"APPLE",  shift:1 },
+  ];
+
+  // Difficulty: how many letters to reveal in the preview
+  const DIFF_REVEAL = { easy:3, medium:2, hard:1 };
+  let difficulty = "easy";
+
+  let idx = 0;
+  let currentShift = 0;
+  let filled = [];
+  let cursor = 0;
+
+  let score = 0;
+  let secondsLeft = 90;
+  let timerId = null;
+
+  // Drag/swipe
+  let dragging = false;
+  let startX = null;
+  const STEP_PX = 24;
+
+  const el = (id) => document.getElementById(id);
+  const cipherEl = el("cipherBox");
+  const wrapEl = el("cipherWrap");
+
+  function toast(msg){
+    const t = el("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"), 650);
+  }
+
+  function formatTime(s){
+    const m = String(Math.floor(s/60)).padStart(2,"0");
+    const r = String(s%60).padStart(2,"0");
+    return `${m}:${r}`;
+  }
+
+  function setDisabledAll(disabled){
+    const cls = "disabled";
+    const app = document.querySelector(".app");
+    if(disabled) app.classList.add(cls);
+    else app.classList.remove(cls);
+  }
+
+  // ---- Caesar helpers
+  function caesarEncode(text, shift){
+    const A = "A".charCodeAt(0);
+    return text.toUpperCase().split("").map(ch=>{
+      const c = ch.charCodeAt(0);
+      if(c >= A && c <= A+25){
+        return String.fromCharCode(((c - A + shift) % 26) + A);
+      }
+      return ch;
+    }).join("");
+  }
+
+  function caesarDecode(text, shift){
+    const A = "A".charCodeAt(0);
+    return text.toUpperCase().split("").map(ch=>{
+      const c = ch.charCodeAt(0);
+      if(c >= A && c <= A+25){
+        return String.fromCharCode(((c - A - shift + 26) % 26) + A);
+      }
+      return ch;
+    }).join("");
+  }
+
+  function circularDistance(a, b){
+    const d = Math.abs(a - b) % 26;
+    return Math.min(d, 26 - d); // 0..13
+  }
+
+  // toned but readable curve
+  function heatFromShift(current, optimal){
+    const dist = circularDistance(current, optimal); // 0..13
+    const heat = 1 - (dist / 13); // 0..1
+    return Math.pow(Math.max(0, Math.min(1, heat)), 0.65);
+  }
+
+  // ---- Preview masking: vowel-first, then left-to-right, reveal N letters
+  function revealMaskFor(decoded, revealCount){
+    const vowels = new Set(["A","E","I","O","U"]);
+    const chars = decoded.split("");
+    const mask = new Array(chars.length).fill(false);
+    let revealed = 0;
+
+    // vowels first
+    for(let i=0;i<chars.length && revealed < revealCount;i++){
+      if(/[A-Z]/.test(chars[i]) && vowels.has(chars[i]) && !mask[i]){
+        mask[i] = true; revealed++;
+      }
+    }
+    // then remaining letters
+    for(let i=0;i<chars.length && revealed < revealCount;i++){
+      if(/[A-Z]/.test(chars[i]) && !mask[i]){
+        mask[i] = true; revealed++;
+      }
+    }
+    return mask;
+  }
+
+  function maskedPreview(decoded){
+    const n = DIFF_REVEAL[difficulty];
+    const mask = revealMaskFor(decoded, n);
+    return decoded.split("").map((ch,i)=>{
+      if(!/[A-Z]/.test(ch)) return ch;
+      return mask[i] ? ch : "_";
+    }).join(" ");
+  }
+
+  // ---- UI rendering
+  function renderSlots(){
+    const answer = puzzles[idx].answer.toUpperCase();
+    const slots = el("slots");
+    slots.innerHTML = "";
+
+    for(let i=0;i<answer.length;i++){
+      const box = document.createElement("div");
+      box.className = "slot";
+      box.textContent = filled[i] || "";
+      if(filled[i] && filled[i] === answer[i]) box.classList.add("ok");
+      slots.appendChild(box);
+    }
+  }
+
+  function renderBank(){
+    const answerLetters = puzzles[idx].answer.toUpperCase().replace(/[^A-Z]/g, "").split("");
+    const unique = Array.from(new Set(answerLetters));
+
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    while(unique.length < 14){
+      const r = alphabet[Math.floor(Math.random() * 26)];
+      if(!unique.includes(r)) unique.push(r);
+    }
+    unique.sort(()=>Math.random()-0.5);
+
+    const bank = el("bank");
+    bank.innerHTML = "";
+    unique.forEach(ch=>{
+      const b = document.createElement("button");
+      b.className = "key";
+      b.textContent = ch;
+      b.addEventListener("click", ()=>addLetter(ch));
+      bank.appendChild(b);
+    });
+  }
+
+  function updateShiftUI(){
+    const p = puzzles[idx];
+    // big stays ciphertext
+    cipherEl.textContent = p.cipher;
+
+    const decoded = caesarDecode(p.cipher, currentShift);
+    el("preview").textContent = maskedPreview(decoded);
+    el("shiftLabel").textContent = `Shift: ${currentShift}`;
+
+    const heat = heatFromShift(currentShift, p.shift);
+    wrapEl.style.setProperty("--heat", heat.toFixed(3));
+  }
+
+  function initPuzzle(){
+    const p = puzzles[idx];
+    p.cipher = caesarEncode(p.answer, p.shift);
+
+    el("roundPill").textContent = `Caesar Sprint · word ${idx+1}/${puzzles.length}`;
+
+    filled = p.answer.toUpperCase().split("").map(()=> "");
+    cursor = 0;
+    currentShift = 0;
+
+    renderSlots();
+    renderBank();
+    updateShiftUI();
+  }
+
+  // ---- Gameplay
+  function addLetter(letter){
+    if(secondsLeft <= 0) return;
+    if(cursor >= filled.length) return;
+    filled[cursor] = letter;
+    cursor++;
+    renderSlots();
+    checkSolved();
+  }
+
+  function backspace(){
+    if(secondsLeft <= 0) return;
+    if(cursor <= 0) return;
+    cursor--;
+    filled[cursor] = "";
+    renderSlots();
+  }
+
+  function clearAll(){
+    if(secondsLeft <= 0) return;
+    filled = puzzles[idx].answer.toUpperCase().split("").map(()=> "");
+    cursor = 0;
+    renderSlots();
+  }
+
+  function skip(){
+    if(secondsLeft <= 0) return;
+    toast("Skipped");
+    nextPuzzle();
+  }
+
+  function checkSolved(){
+    const attempt = filled.join("");
+    const answer = puzzles[idx].answer.toUpperCase();
+    if(attempt === answer){
+      score += 100;
+      el("scorePill").textContent = String(score);
+      toast("+100");
+      setTimeout(nextPuzzle, 350);
+    }
+  }
+
+  function nextPuzzle(){
+    idx++;
+    if(idx >= puzzles.length){
+      toast("Run complete!");
+      setDisabledAll(true);
+      clearInterval(timerId);
+      return;
+    }
+    initPuzzle();
+  }
+
+  // ---- Shift controls
+  function pulse(){
+    cipherEl.style.transform = "scale(1.05)";
+    setTimeout(()=>cipherEl.style.transform="scale(1)", 110);
+  }
+
+  function nudge(dir){
+    if(secondsLeft <= 0) return;
+    currentShift = (currentShift + (dir > 0 ? 1 : -1) + 26) % 26;
+    pulse();
+    updateShiftUI();
+  }
+
+  el("leftBtn").addEventListener("click", ()=>nudge(-1));
+  el("rightBtn").addEventListener("click", ()=>nudge(+1));
+
+  window.addEventListener("keydown", (e)=>{
+    if(e.key === "ArrowLeft") nudge(-1);
+    if(e.key === "ArrowRight") nudge(+1);
+  });
+
+  // Pointer drag (mouse + touch)
+  cipherEl.addEventListener("pointerdown", (e)=>{
+    if(secondsLeft <= 0) return;
+    dragging = true;
+    startX = e.clientX;
+    cipherEl.setPointerCapture?.(e.pointerId);
+  });
+
+  cipherEl.addEventListener("pointermove", (e)=>{
+    if(!dragging || startX === null || secondsLeft <= 0) return;
+    const delta = e.clientX - startX;
+    if(Math.abs(delta) >= STEP_PX){
+      // right drag -> shift down, left drag -> shift up (feel free to flip)
+      if(delta > 0) nudge(-1);
+      else nudge(+1);
+      startX = e.clientX;
+    }
+  });
+
+  cipherEl.addEventListener("pointerup", ()=>{ dragging=false; startX=null; });
+  cipherEl.addEventListener("pointercancel", ()=>{ dragging=false; startX=null; });
+  cipherEl.addEventListener("dragstart", (e)=>e.preventDefault());
+
+  // ---- Difficulty
+  function setDifficulty(next){
+    difficulty = next;
+    el("easyBtn").classList.toggle("active", next==="easy");
+    el("medBtn").classList.toggle("active", next==="medium");
+    el("hardBtn").classList.toggle("active", next==="hard");
+    updateShiftUI();
+  }
+  el("easyBtn").addEventListener("click", ()=>setDifficulty("easy"));
+  el("medBtn").addEventListener("click", ()=>setDifficulty("medium"));
+  el("hardBtn").addEventListener("click", ()=>setDifficulty("hard"));
+
+  // ---- Timer
+  function startTimer(){
+    el("timerPill").textContent = formatTime(secondsLeft); // initialize immediately
+    timerId = setInterval(()=>{
+      secondsLeft = Math.max(0, secondsLeft - 1);
+      el("timerPill").textContent = formatTime(secondsLeft);
+
+      if(secondsLeft === 0){
+        clearInterval(timerId);
+        toast("Time!");
+        setDisabledAll(true);
+      }
+    }, 1000);
+  }
+
+  // Controls
+  el("backBtn").addEventListener("click", backspace);
+  el("clearBtn").addEventListener("click", clearAll);
+  el("skipBtn").addEventListener("click", skip);
+
+  // ---- Init
+  el("scorePill").textContent = String(score);
+  initPuzzle();
+  startTimer();
+</script>
+</body>
+</html>
