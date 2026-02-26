@@ -1,245 +1,441 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Cipher Sprint (Prototype)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cipher Sprint — Desktop Prototype</title>
   <style>
+    :root{
+      --bg0:#05060a;
+      --bg1:#0a0d14;
+      --panel: rgba(255,255,255,.04);
+      --panel2: rgba(255,255,255,.06);
+      --line: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.62);
+      --muted2: rgba(255,255,255,.45);
+
+      --good:#22c55e;
+      --warn:#f59e0b;
+
+      --cold:#3b82f6; /* blue */
+      --warm:#f59e0b; /* amber */
+      --hot:#ef4444;  /* red */
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+
+      --r16:16px;
+      --r20:20px;
+      --r24:24px;
+    }
+
+    *{ box-sizing:border-box; }
     body{
       margin:0;
-      font-family:system-ui;
-      background:#0b0f17;
-      color:white;
+      min-height:100vh;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(1000px 600px at 20% -10%, rgba(59,130,246,.10), transparent 55%),
+        radial-gradient(900px 560px at 110% 10%, rgba(239,68,68,.08), transparent 55%),
+        radial-gradient(800px 520px at 50% 120%, rgba(34,197,94,.06), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
       display:flex;
       justify-content:center;
+      padding: 28px 24px;
     }
-    .app{ width:100%; max-width:420px; padding:16px; }
 
-    /* HUD */
-    .topRow{
+    .shell{
+      width:min(1080px, 100%);
       display:flex;
-      justify-content:space-between;
+      flex-direction:column;
+      gap: 18px;
+    }
+
+    /* Top bar */
+    .topbar{
+      display:flex;
       align-items:center;
-      gap:10px;
-      margin-bottom:10px;
-      flex-wrap:wrap;
+      justify-content:space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: var(--r24);
+      backdrop-filter: blur(10px);
+    }
+    .brand{
+      display:flex;
+      align-items:baseline;
+      gap: 12px;
+      min-width: 280px;
+    }
+    .brand h1{
+      font-size: 16px;
+      margin:0;
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+    .sub{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .topmid{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 10px;
+      flex: 1;
+      flex-wrap: wrap;
     }
     .pill{
-      border-radius:999px;
-      padding:8px 12px;
-      font-size:12px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(255,255,255,.08);
-      color: rgba(255,255,255,.85);
-      white-space:nowrap;
-    }
-    .hudRight{ display:flex; gap:10px; align-items:center; }
-    .timerPill{
-      border-color: rgba(245,158,11,.28);
-      background: rgba(245,158,11,.12);
-      font-weight:900;
-      font-variant-numeric:tabular-nums;
-      min-width:78px;
-      text-align:center;
-    }
-    .scorePill{
-      border-color: rgba(96,165,250,.28);
-      background: rgba(96,165,250,.12);
-      font-weight:900;
-      font-variant-numeric:tabular-nums;
-      min-width:78px;
-      text-align:center;
-    }
-
-    /* Hot/Cold Glow (TONED DOWN) */
-    .cipherWrap{
-      --heat: 0; /* 0 cold -> 1 hot */
-      margin-top:8px;
-      border-radius:22px;
-      padding:14px;
-      border:1px solid rgba(255,255,255,.14);
-      background:
-        radial-gradient(900px 360px at 50% 0%,
-          rgba(96,165,250, calc(0.10 + (1 - var(--heat)) * 0.18)),
-          transparent 62%),
-        radial-gradient(900px 360px at 50% 100%,
-          rgba(239,68,68, calc(0.06 + var(--heat) * 0.22)),
-          transparent 62%),
-        rgba(255,255,255,.06);
-      box-shadow:
-        0 0 26px rgba(96,165,250, calc((1 - var(--heat)) * 0.35)),
-        0 0 30px rgba(239,68,68, calc(var(--heat) * 0.45));
-      transition: background 110ms ease, box-shadow 110ms ease;
-    }
-
-    /* Cipher display stays ciphertext */
-    .cipherBox{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-      font-size:34px;
-      text-align:center;
-      letter-spacing:6px;
-      padding:18px 10px;
-      border-radius:18px;
-      background:rgba(0,0,0,.20);
-      border:1px solid rgba(255,255,255,.12);
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      font-size: 12px;
+      color: var(--muted);
       user-select:none;
-      cursor:grab;
-      touch-action: pan-y;
-      transition: transform .12s ease;
     }
-    .cipherBox:active{ cursor:grabbing; }
+    .pill strong{ color: var(--text); font-weight: 900; }
 
-    .preview{
-      text-align:center;
-      margin-top:10px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-      letter-spacing:4px;
-      font-size:18px;
-      color: rgba(255,255,255,.88);
-      min-height: 24px;
+    .kbd{
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,.78);
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.28);
     }
 
-    .shiftRow{
-      margin-top:12px;
+    .topright{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      min-width: 280px;
+      justify-content:flex-end;
+    }
+    .metric{
+      display:flex;
+      flex-direction:column;
+      gap: 2px;
+      padding: 8px 10px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      min-width: 92px;
+      text-align:right;
+    }
+    .metric .k{
+      font-size: 10px;
+      color: var(--muted2);
+      letter-spacing: .6px;
+      font-weight: 800;
+    }
+    .metric .v{
+      font-variant-numeric: tabular-nums;
+      font-size: 16px;
+      font-weight: 950;
+      letter-spacing: .4px;
+    }
+    .metric.timer .v{ color: rgba(255,255,255,.92); }
+    .metric.score .v{ color: rgba(34,197,94,.95); }
+
+    .btn{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-radius: 16px;
+      padding: 10px 12px;
+      font-weight: 900;
+      cursor:pointer;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,.07); }
+    .btn:active{ transform: translateY(1px); }
+
+    /* Main grid */
+    .grid{
+      display:grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 18px;
+      align-items:start;
+    }
+    .card{
+      border: 1px solid var(--line);
+      border-radius: var(--r24);
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+      box-shadow:
+        0 12px 30px rgba(0,0,0,.32),
+        0 0 0 1px rgba(255,255,255,.02) inset;
+    }
+
+    /* Cipher card */
+    .cipherCard{
+      --heat: 0; /* 0..1 */
+      padding: 18px;
+      border-radius: 24px;
+      border: 2px solid rgba(59,130,246,.35);
+      background: rgba(255,255,255,.04);
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    .cipherHeader{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:10px;
+      gap: 10px;
+      margin-bottom: 12px;
     }
-    .shiftLabel{
-      flex:1;
-      text-align:center;
-      font-size:13px;
-      color: rgba(255,255,255,.70);
-      font-variant-numeric: tabular-nums;
-      white-space:nowrap;
+    .tag{
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.22);
+      border-radius: 999px;
+      padding: 7px 10px;
+      display:flex;
+      align-items:center;
+      gap: 8px;
     }
-    .arrowBtn{
-      width:46px;
-      height:40px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.20);
-      background:rgba(255,255,255,.10);
-      color:white;
-      font-weight:900;
-      cursor:pointer;
-      user-select:none;
-    }
-    .arrowBtn:active{ transform: scale(.97); }
+    .tag strong{ color: var(--text); }
 
     /* Difficulty */
-    .diffRow{ margin-top:12px; }
-    .diffTitle{
-      font-size:12px;
-      color: rgba(255,255,255,.70);
-      margin-bottom:6px;
-    }
-    .segmented{
+    .seg{
       display:flex;
-      gap:6px;
-      padding:6px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.18);
+      gap: 6px;
+      padding: 6px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
     }
-    .segmented button{
-      flex:1;
-      height:36px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.16);
-      background:rgba(255,255,255,.08);
-      color:white;
-      font-weight:900;
+    .seg button{
+      min-width: 84px;
+      height: 34px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.92);
+      font-weight: 900;
       cursor:pointer;
     }
-    .segmented button.active{
+    .seg button.active{
       border-color: rgba(245,158,11,.45);
-      background: rgba(245,158,11,.18);
-    }
-    .hint{
-      margin-top:10px;
-      font-size:12px;
-      color: rgba(255,255,255,.60);
-      text-align:center;
+      background: rgba(245,158,11,.14);
+      box-shadow: 0 0 18px rgba(245,158,11,.14);
     }
 
-    /* Slots */
-    .slots{
-      margin-top:18px;
-      display:flex;
-      justify-content:center;
-      gap:8px;
-      flex-wrap:wrap;
+    /* Cipher display + thermo ring */
+    .cipherStage{
+      width: 100%;
     }
-    .slot{
-      width:42px;
-      height:50px;
-      border-radius:12px;
+
+    .cipherText{
+      border-radius: var(--r24);
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.28);
+      padding: 26px 18px;
+      text-align:center;
+      font-family: var(--mono);
+      font-weight: 950;
+      letter-spacing: 10px;
+      font-size: 44px;
+      user-select:none;
+      cursor: grab;
+      box-shadow:
+        0 18px 50px rgba(0,0,0,.35),
+        0 0 0 1px rgba(255,255,255,.02) inset;
+    }
+    .cipherText:active{ cursor: grabbing; }
+
+  /* Dynamic heat glow */
+.cipherCard.hot{
+  border-color: rgba(239,68,68,.85);
+  box-shadow:
+    0 0 calc(20px + var(--heat) * 35px) rgba(239,68,68,.45);
+}
+
+.cipherCard.warm{
+  border-color: rgba(245,158,11,.85);
+  box-shadow:
+    0 0 calc(12px + var(--heat) * 25px) rgba(245,158,11,.35);
+}
+
+.cipherCard.cold{
+  border-color: rgba(59,130,246,.7);
+  box-shadow:
+    0 0 calc(6px + var(--heat) * 18px) rgba(59,130,246,.35);
+}
+
+/* Subtle pulse when exact */
+.cipherCard.correct{
+  animation: pulseHot 380ms ease;
+}
+
+@keyframes pulseHot{
+  0% { box-shadow: 0 0 0 rgba(239,68,68,0); }
+  50% { box-shadow: 0 0 60px rgba(239,68,68,.6); }
+  100% { box-shadow: 0 0 0 rgba(239,68,68,0); }
+}
+
+    .previewRow{
+      margin-top: 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .preview{
+      flex: 1;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.22);
+      padding: 10px 12px;
+      font-family: var(--mono);
+      color: rgba(255,255,255,.84);
+      letter-spacing: 6px;
+      text-align:center;
+      min-height: 42px;
       display:flex;
       align-items:center;
       justify-content:center;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-      font-size:20px;
-      font-weight:900;
-      border:1px solid rgba(255,255,255,.20);
-      background:rgba(255,255,255,.06);
+      font-size: 16px;
     }
-    .slot.ok{
-      border-color:#22c55e;
-      background:rgba(34,197,94,.18);
+    .shiftPill{
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.22);
+      padding: 10px 12px;
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: .6px;
+      color: rgba(255,255,255,.78);
+      min-width: 160px;
+      text-align:center;
+      font-variant-numeric: tabular-nums;
     }
-
-    /* Bank */
-    .bank{
-      margin-top:18px;
-      display:grid;
-      grid-template-columns:repeat(7,1fr);
-      gap:8px;
-    }
-    .key{
-      height:44px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.20);
-      background:rgba(255,255,255,.10);
-      color:white;
-      font-weight:900;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-      font-size:16px;
-      cursor:pointer;
-      user-select:none;
-    }
-    .key:active{ transform:scale(.96); }
 
     .controls{
-      margin-top:16px;
+      margin-top: 14px;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .shiftBtn{
+      height: 40px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      font-weight: 900;
+      padding: 0 14px;
+      cursor:pointer;
+      user-select:none;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+    }
+    .shiftBtn:hover{ background: rgba(255,255,255,.08); }
+    .shiftBtn:active{ transform: translateY(1px); }
+    .controls .helpText{
+      font-size: 12px;
+      color: var(--muted);
+      margin-left:auto;
+      display:flex;
+      gap: 8px;
+      align-items:center;
+    }
+
+    /* Right panel */
+    .panel{ padding: 18px; }
+    .panel h2{
+      margin:0 0 10px 0;
+      font-size: 13px;
+      letter-spacing: .3px;
+      color: rgba(255,255,255,.90);
+    }
+    .panel p{
+      margin:0 0 14px 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .slots{
       display:flex;
       gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-start;
+      margin: 10px 0 14px 0;
     }
-    .control{
-      flex:1;
-      height:44px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.20);
-      background:rgba(255,255,255,.10);
-      color:white;
-      font-weight:900;
+    .slot{
+      width: 46px;
+      height: 52px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family: var(--mono);
+      font-weight: 950;
+      font-size: 18px;
+    }
+    .slot.ok{
+      border-color: rgba(34,197,94,.55);
+      background: rgba(34,197,94,.12);
+    }
+
+    .bank{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .key{
+      height: 44px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.92);
+      font-family: var(--mono);
+      font-weight: 950;
+      font-size: 15px;
       cursor:pointer;
       user-select:none;
     }
-    .control:active{ transform:scale(.98); }
-    .disabled{
-      opacity: .55;
-      pointer-events:none;
-      filter: grayscale(0.2);
+    .key:hover{ background: rgba(255,255,255,.08); }
+    .key:active{ transform: translateY(1px); }
+
+    .panelControls{
+      display:flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .panelControls .btn{
+      flex: 1;
+      min-width: 120px;
+      text-align:center;
+      padding: 12px 14px;
+      border-radius: 16px;
     }
 
-    /* Toast */
     .toast{
       position: fixed;
       left: 50%;
       transform: translateX(-50%);
       bottom: 18px;
-      background: rgba(0,0,0,.62);
+      background: rgba(0,0,0,.70);
       border:1px solid rgba(255,255,255,.16);
       color: white;
       padding: 10px 12px;
@@ -249,59 +445,256 @@
       opacity: 0;
       pointer-events:none;
       transition: opacity 180ms ease, transform 180ms ease;
+      z-index: 50;
     }
     .toast.show{
       opacity: 1;
       transform: translateX(-50%) translateY(-6px);
     }
+
+    .disabled{
+      opacity:.55;
+      pointer-events:none;
+      filter: grayscale(.15);
+    }
+
+    /* Start modal */
+    .modalBack{
+      position: fixed;
+      inset:0;
+      background: rgba(0,0,0,.68);
+      backdrop-filter: blur(10px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 24px;
+      z-index: 100;
+    }
+    .modal{
+      width: min(820px, 100%);
+      border-radius: 26px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(10,12,18,.92);
+      box-shadow: 0 30px 90px rgba(0,0,0,.65);
+      overflow:hidden;
+    }
+    .modalHead{
+      padding: 18px 18px 0 18px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap: 12px;
+    }
+    .modalTitle{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+    }
+    .modalTitle h3{
+      margin:0;
+      font-size: 18px;
+      font-weight: 950;
+      letter-spacing: .2px;
+    }
+    .modalTitle .mini{
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      max-width: 64ch;
+    }
+    .modalBody{
+      padding: 14px 18px 18px 18px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .howCard{
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      padding: 14px;
+    }
+    .howCard h4{
+      margin:0 0 8px 0;
+      font-size: 13px;
+      letter-spacing: .3px;
+    }
+    .howCard ul{
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .howCard code{
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(255,255,255,.86);
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 2px 6px;
+      border-radius: 8px;
+    }
+    .modalFoot{
+      padding: 0 18px 18px 18px;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content:flex-end;
+      flex-wrap: wrap;
+    }
+    .primary{
+      border-color: rgba(34,197,94,.30);
+      background: rgba(34,197,94,.16);
+    }
+    .primary:hover{ background: rgba(34,197,94,.22); }
+    .secondary{
+      background: rgba(255,255,255,.05);
+    }
+
+    @media (max-width: 920px){
+      .grid{ grid-template-columns: 1fr; }
+      .brand, .topright{ min-width: unset; }
+      .cipherText{ font-size: 40px; letter-spacing: 9px; }
+      .cipherStage{ grid-template-columns: 1fr; }
+    }
+    @media (max-width: 740px){
+      .modalBody{ grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-  <div class="app">
-    <div class="topRow">
-      <div class="pill" id="roundPill">Caesar Sprint · word 1/8</div>
-      <div class="hudRight">
-        <div class="pill timerPill" id="timerPill">01:30</div>
-        <div class="pill scorePill" id="scorePill">0</div>
+  <div class="shell" id="shell">
+    <div class="topbar">
+      <div class="brand">
+        <h1>Cipher Sprint</h1>
+        <div class="sub">Desktop prototype · Caesar only</div>
+      </div>
+
+      <div class="topmid">
+        <div class="pill"><strong id="wordPill">Word 1/8</strong></div>
+        <div class="pill">Shift with <span class="kbd">←</span> <span class="kbd">→</span> or click arrows</div>
+        <div class="pill">Hot/Cold guides the shift</div>
+      </div>
+
+      <div class="topright">
+        <div class="metric timer">
+          <div class="k">TIME</div>
+          <div class="v" id="timer">01:30</div>
+        </div>
+        <div class="metric score">
+          <div class="k">SCORE</div>
+          <div class="v" id="score">0</div>
+        </div>
+        <button class="btn" id="howBtn">How to play</button>
       </div>
     </div>
 
-    <div class="cipherWrap" id="cipherWrap">
-      <div class="cipherBox" id="cipherBox" aria-label="Swipe or drag to change shift">----</div>
-      <div class="preview" id="preview">_ _ _ _</div>
+    <div class="grid">
+      <!-- Left: cipher interaction -->
+      <div class="card cipherCard" id="cipherCard">
+        <div class="cipherHeader">
+          <div class="tag"><strong>Mode</strong> Caesar cipher</div>
 
-      <div class="shiftRow">
-        <button class="arrowBtn" id="leftBtn" aria-label="Shift left">←</button>
-        <div class="shiftLabel" id="shiftLabel">Shift: 0</div>
-        <button class="arrowBtn" id="rightBtn" aria-label="Shift right">→</button>
-      </div>
+          <div class="tag" title="Preview reveals vowel-first, then left-to-right">
+            <strong>Preview</strong>
+            <span id="revealInfo">3</span> letters
+          </div>
 
-      <div class="diffRow">
-        <div class="diffTitle">Difficulty</div>
-        <div class="segmented" role="group" aria-label="Difficulty">
-          <button id="easyBtn" class="active">Easy</button>
-          <button id="medBtn">Medium</button>
-          <button id="hardBtn">Hard</button>
+          <div class="seg" role="group" aria-label="Difficulty">
+            <button id="easyBtn" class="active">Easy</button>
+            <button id="medBtn">Medium</button>
+            <button id="hardBtn">Hard</button>
+          </div>
+        </div>
+
+        <div class="cipherStage">
+          <div class="cipherText" id="cipherText" aria-label="Ciphertext (drag left/right to change shift)">----</div>
+        </div>
+
+        <div class="previewRow">
+          <div class="preview" id="preview">_ _ _ _</div>
+          <div class="shiftPill" id="shiftLabel">SHIFT: 0</div>
+        </div>
+
+        <div class="controls">
+          <button class="shiftBtn" id="leftBtn">← Shift</button>
+          <button class="shiftBtn" id="rightBtn">Shift →</button>
+
+          <div class="helpText">
+            Tip: try shifts near where the heat rises.
+          </div>
         </div>
       </div>
 
-      <div class="hint" id="hintLine">Easy reveals 3 letters · Medium 2 · Hard 1 (vowel-first)</div>
+      <!-- Right: answer building -->
+      <div class="card panel">
+        <h2>Build the answer</h2>
+        <p>
+          Click letters to fill the slots. Only correct letters turn green.  
+          The ciphertext never changes — you rely on the preview + hot/cold to find the shift.
+        </p>
+
+        <div class="slots" id="slots"></div>
+
+        <h2>Letter bank</h2>
+        <div class="bank" id="bank"></div>
+
+        <div class="panelControls">
+          <button class="btn" id="backBtn">⌫ Back</button>
+          <button class="btn" id="clearBtn">Clear</button>
+          <button class="btn" id="skipBtn">Skip</button>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div class="slots" id="slots"></div>
-    <div class="bank" id="bank"></div>
+  <!-- Start / How-to modal -->
+  <div class="modalBack" id="modalBack" aria-modal="true" role="dialog">
+    <div class="modal">
+      <div class="modalHead">
+        <div class="modalTitle">
+          <h3>How Cipher Sprint works</h3>
+          <div class="mini">
+            You’re solving <strong>Caesar ciphers</strong>. Use the hot/cold meter to find the shift, then build the answer using the letter bank.
+          </div>
+        </div>
+      </div>
 
-    <div class="controls">
-      <button class="control" id="backBtn">⌫</button>
-      <button class="control" id="clearBtn">Clear</button>
-      <button class="control" id="skipBtn">Skip</button>
+      <div class="modalBody">
+        <div class="howCard">
+          <h4>Game mechanics</h4>
+          <ul>
+            <li>The big text is the <strong>ciphertext</strong> (it stays the same).</li>
+            <li>Use <code>←</code>/<code>→</code> or the buttons to change the <strong>shift</strong>.</li>
+            <li>The preview reveals a few letters (difficulty controls how many).</li>
+            <li>The hot/cold indicator gets <strong>hotter</strong> as your shift approaches the correct one.</li>
+            <li>Fill the slots using the letter bank. Correct letters turn green.</li>
+          </ul>
+        </div>
+
+        <div class="howCard">
+          <h4>What is a Caesar cipher?</h4>
+          <ul>
+            <li>It shifts each letter by a fixed amount in the alphabet.</li>
+            <li>Example shift 3: <code>A→D</code>, <code>B→E</code>, <code>C→F</code> …</li>
+            <li>To <strong>decode</strong>, you shift back by the same amount.</li>
+            <li>Your goal is to find the correct shift for each word.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="modalFoot">
+        <button class="btn secondary" id="closeModalBtn">Close</button>
+        <button class="btn primary" id="startBtn">Start game</button>
+      </div>
     </div>
   </div>
 
   <div class="toast" id="toast">Solved!</div>
 
 <script>
-  // ---- Caesar-only run (answer + shift). Cipher is generated -> always consistent.
+  // Caesar-only run (answer + shift). Cipher is generated -> always consistent.
   const puzzles = [
     { answer:"THIS",   shift:5 },
     { answer:"MAX",    shift:7 },
@@ -313,7 +706,6 @@
     { answer:"APPLE",  shift:1 },
   ];
 
-  // Difficulty: how many letters to reveal in the preview
   const DIFF_REVEAL = { easy:3, medium:2, hard:1 };
   let difficulty = "easy";
 
@@ -325,15 +717,14 @@
   let score = 0;
   let secondsLeft = 90;
   let timerId = null;
+  let started = false;
 
-  // Drag/swipe
-  let dragging = false;
-  let startX = null;
-  const STEP_PX = 24;
+  // drag states (optional)
+  let draggingCipher = false;
+  let cipherStartX = null;
+  const CIPHER_STEP_PX = 26;
 
   const el = (id) => document.getElementById(id);
-  const cipherEl = el("cipherBox");
-  const wrapEl = el("cipherWrap");
 
   function toast(msg){
     const t = el("toast");
@@ -349,13 +740,10 @@
   }
 
   function setDisabledAll(disabled){
-    const cls = "disabled";
-    const app = document.querySelector(".app");
-    if(disabled) app.classList.add(cls);
-    else app.classList.remove(cls);
+    el("shell").classList.toggle("disabled", disabled);
   }
 
-  // ---- Caesar helpers
+  // Caesar helpers
   function caesarEncode(text, shift){
     const A = "A".charCodeAt(0);
     return text.toUpperCase().split("").map(ch=>{
@@ -366,7 +754,6 @@
       return ch;
     }).join("");
   }
-
   function caesarDecode(text, shift){
     const A = "A".charCodeAt(0);
     return text.toUpperCase().split("").map(ch=>{
@@ -382,28 +769,25 @@
     const d = Math.abs(a - b) % 26;
     return Math.min(d, 26 - d); // 0..13
   }
-
-  // toned but readable curve
+  // keep this subtle; the indicator itself is deliberate
   function heatFromShift(current, optimal){
-    const dist = circularDistance(current, optimal); // 0..13
+    const dist = circularDistance(current, optimal);
     const heat = 1 - (dist / 13); // 0..1
-    return Math.pow(Math.max(0, Math.min(1, heat)), 0.65);
+    return Math.pow(Math.max(0, Math.min(1, heat)), 0.85);
   }
 
-  // ---- Preview masking: vowel-first, then left-to-right, reveal N letters
+  // Preview masking: vowel-first then left-to-right
   function revealMaskFor(decoded, revealCount){
     const vowels = new Set(["A","E","I","O","U"]);
     const chars = decoded.split("");
     const mask = new Array(chars.length).fill(false);
     let revealed = 0;
 
-    // vowels first
     for(let i=0;i<chars.length && revealed < revealCount;i++){
       if(/[A-Z]/.test(chars[i]) && vowels.has(chars[i]) && !mask[i]){
         mask[i] = true; revealed++;
       }
     }
-    // then remaining letters
     for(let i=0;i<chars.length && revealed < revealCount;i++){
       if(/[A-Z]/.test(chars[i]) && !mask[i]){
         mask[i] = true; revealed++;
@@ -421,12 +805,11 @@
     }).join(" ");
   }
 
-  // ---- UI rendering
+  // UI rendering
   function renderSlots(){
     const answer = puzzles[idx].answer.toUpperCase();
     const slots = el("slots");
     slots.innerHTML = "";
-
     for(let i=0;i<answer.length;i++){
       const box = document.createElement("div");
       box.className = "slot";
@@ -439,8 +822,8 @@
   function renderBank(){
     const answerLetters = puzzles[idx].answer.toUpperCase().replace(/[^A-Z]/g, "").split("");
     const unique = Array.from(new Set(answerLetters));
-
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
     while(unique.length < 14){
       const r = alphabet[Math.floor(Math.random() * 26)];
       if(!unique.includes(r)) unique.push(r);
@@ -458,24 +841,52 @@
     });
   }
 
+  function heatLabel(h){
+    if(h >= 0.86) return "HOT";
+    if(h >= 0.62) return "WARM";
+    if(h >= 0.38) return "COOL";
+    return "COLD";
+  }
+
+  function updateHeatUI(h){
+  const card = el("cipherCard");
+
+  card.classList.remove("cold","warm","hot","correct");
+
+  if(h > 0.92){
+    card.classList.add("hot");
+  }
+  else if(h > 0.65){
+    card.classList.add("hot");
+  }
+  else if(h > 0.4){
+    card.classList.add("warm");
+  }
+  else{
+    card.classList.add("cold");
+  }
+
+  card.style.setProperty("--heat", h.toFixed(3));
+}
+
   function updateShiftUI(){
     const p = puzzles[idx];
-    // big stays ciphertext
-    cipherEl.textContent = p.cipher;
+    el("cipherText").textContent = p.cipher;
 
     const decoded = caesarDecode(p.cipher, currentShift);
     el("preview").textContent = maskedPreview(decoded);
-    el("shiftLabel").textContent = `Shift: ${currentShift}`;
+    el("shiftLabel").textContent = `SHIFT: ${currentShift}`;
 
-    const heat = heatFromShift(currentShift, p.shift);
-    wrapEl.style.setProperty("--heat", heat.toFixed(3));
+    const h = heatFromShift(currentShift, p.shift);
+    updateHeatUI(h);
+
+    el("revealInfo").textContent = String(DIFF_REVEAL[difficulty]);
+    el("wordPill").textContent = `Word ${idx+1}/${puzzles.length}`;
   }
 
   function initPuzzle(){
     const p = puzzles[idx];
     p.cipher = caesarEncode(p.answer, p.shift);
-
-    el("roundPill").textContent = `Caesar Sprint · word ${idx+1}/${puzzles.length}`;
 
     filled = p.answer.toUpperCase().split("").map(()=> "");
     cursor = 0;
@@ -486,9 +897,9 @@
     updateShiftUI();
   }
 
-  // ---- Gameplay
+  // Gameplay
   function addLetter(letter){
-    if(secondsLeft <= 0) return;
+    if(!started || secondsLeft <= 0) return;
     if(cursor >= filled.length) return;
     filled[cursor] = letter;
     cursor++;
@@ -497,7 +908,7 @@
   }
 
   function backspace(){
-    if(secondsLeft <= 0) return;
+    if(!started || secondsLeft <= 0) return;
     if(cursor <= 0) return;
     cursor--;
     filled[cursor] = "";
@@ -505,14 +916,14 @@
   }
 
   function clearAll(){
-    if(secondsLeft <= 0) return;
+    if(!started || secondsLeft <= 0) return;
     filled = puzzles[idx].answer.toUpperCase().split("").map(()=> "");
     cursor = 0;
     renderSlots();
   }
 
   function skip(){
-    if(secondsLeft <= 0) return;
+    if(!started || secondsLeft <= 0) return;
     toast("Skipped");
     nextPuzzle();
   }
@@ -522,9 +933,9 @@
     const answer = puzzles[idx].answer.toUpperCase();
     if(attempt === answer){
       score += 100;
-      el("scorePill").textContent = String(score);
+      el("score").textContent = String(score);
       toast("+100");
-      setTimeout(nextPuzzle, 350);
+      setTimeout(nextPuzzle, 320);
     }
   }
 
@@ -539,51 +950,49 @@
     initPuzzle();
   }
 
-  // ---- Shift controls
-  function pulse(){
-    cipherEl.style.transform = "scale(1.05)";
-    setTimeout(()=>cipherEl.style.transform="scale(1)", 110);
+  // Shift controls (arrows only; no scrubber)
+  function pulseCipher(){
+    const c = el("cipherText");
+    c.style.transform = "scale(1.02)";
+    setTimeout(()=>c.style.transform="scale(1)", 110);
   }
 
   function nudge(dir){
-    if(secondsLeft <= 0) return;
+    if(!started || secondsLeft <= 0) return;
     currentShift = (currentShift + (dir > 0 ? 1 : -1) + 26) % 26;
-    pulse();
+    pulseCipher();
     updateShiftUI();
   }
 
   el("leftBtn").addEventListener("click", ()=>nudge(-1));
   el("rightBtn").addEventListener("click", ()=>nudge(+1));
-
   window.addEventListener("keydown", (e)=>{
     if(e.key === "ArrowLeft") nudge(-1);
     if(e.key === "ArrowRight") nudge(+1);
   });
 
-  // Pointer drag (mouse + touch)
-  cipherEl.addEventListener("pointerdown", (e)=>{
-    if(secondsLeft <= 0) return;
-    dragging = true;
-    startX = e.clientX;
-    cipherEl.setPointerCapture?.(e.pointerId);
+  // Optional: drag ciphertext left/right on desktop (keeps it feeling tactile)
+  const cipherBox = el("cipherText");
+  cipherBox.addEventListener("pointerdown", (e)=>{
+    if(!started || secondsLeft <= 0) return;
+    draggingCipher = true;
+    cipherStartX = e.clientX;
+    cipherBox.setPointerCapture?.(e.pointerId);
   });
-
-  cipherEl.addEventListener("pointermove", (e)=>{
-    if(!dragging || startX === null || secondsLeft <= 0) return;
-    const delta = e.clientX - startX;
-    if(Math.abs(delta) >= STEP_PX){
-      // right drag -> shift down, left drag -> shift up (feel free to flip)
-      if(delta > 0) nudge(-1);
+  cipherBox.addEventListener("pointermove", (e)=>{
+    if(!draggingCipher || cipherStartX === null || !started || secondsLeft <= 0) return;
+    const dx = e.clientX - cipherStartX;
+    if(Math.abs(dx) >= CIPHER_STEP_PX){
+      if(dx > 0) nudge(-1);
       else nudge(+1);
-      startX = e.clientX;
+      cipherStartX = e.clientX;
     }
   });
+  cipherBox.addEventListener("pointerup", ()=>{ draggingCipher=false; cipherStartX=null; });
+  cipherBox.addEventListener("pointercancel", ()=>{ draggingCipher=false; cipherStartX=null; });
+  cipherBox.addEventListener("dragstart", (e)=>e.preventDefault());
 
-  cipherEl.addEventListener("pointerup", ()=>{ dragging=false; startX=null; });
-  cipherEl.addEventListener("pointercancel", ()=>{ dragging=false; startX=null; });
-  cipherEl.addEventListener("dragstart", (e)=>e.preventDefault());
-
-  // ---- Difficulty
+  // Difficulty
   function setDifficulty(next){
     difficulty = next;
     el("easyBtn").classList.toggle("active", next==="easy");
@@ -595,13 +1004,12 @@
   el("medBtn").addEventListener("click", ()=>setDifficulty("medium"));
   el("hardBtn").addEventListener("click", ()=>setDifficulty("hard"));
 
-  // ---- Timer
+  // Timer
   function startTimer(){
-    el("timerPill").textContent = formatTime(secondsLeft); // initialize immediately
+    el("timer").textContent = formatTime(secondsLeft);
     timerId = setInterval(()=>{
       secondsLeft = Math.max(0, secondsLeft - 1);
-      el("timerPill").textContent = formatTime(secondsLeft);
-
+      el("timer").textContent = formatTime(secondsLeft);
       if(secondsLeft === 0){
         clearInterval(timerId);
         toast("Time!");
@@ -610,15 +1018,50 @@
     }, 1000);
   }
 
-  // Controls
+  // Start modal behavior
+  function openModal(){
+    el("modalBack").style.display = "flex";
+  }
+  function closeModal(){
+    el("modalBack").style.display = "none";
+  }
+
+  el("howBtn").addEventListener("click", openModal);
+  el("closeModalBtn").addEventListener("click", closeModal);
+
+  el("startBtn").addEventListener("click", ()=>{
+    closeModal();
+    if(started) return;
+    started = true;
+    setDisabledAll(false);
+    startTimer();
+    toast("Go!");
+  });
+
+  // Panel controls
   el("backBtn").addEventListener("click", backspace);
   el("clearBtn").addEventListener("click", clearAll);
   el("skipBtn").addEventListener("click", skip);
 
-  // ---- Init
-  el("scorePill").textContent = String(score);
-  initPuzzle();
-  startTimer();
+  // Init (game is locked until Start)
+  function init(){
+    // lock UI until start
+    setDisabledAll(true);
+    // but allow modal + start
+    el("modalBack").style.display = "flex";
+    // reset state
+    idx = 0;
+    score = 0;
+    secondsLeft = 90;
+    started = false;
+    el("score").textContent = "0";
+    el("timer").textContent = formatTime(secondsLeft);
+    initPuzzle();
+    // heat indicator should be visible even before start
+    updateShiftUI();
+  }
+
+  init();
 </script>
 </body>
 </html>
