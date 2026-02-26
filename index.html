@@ -164,7 +164,7 @@
     /* Main grid */
     .grid{
       display:grid;
-      grid-template-columns: 1.05fr 0.95fr;
+      grid-template-columns: 1.00fr;
       gap: 18px;
       align-items:start;
     }
@@ -233,10 +233,7 @@
       box-shadow: 0 0 18px rgba(245,158,11,.14);
     }
 
-    /* Cipher display + thermo ring */
-    .cipherStage{
-      width: 100%;
-    }
+    .cipherStage{ width: 100%; }
 
     .cipherText{
       border-radius: var(--r24);
@@ -253,38 +250,34 @@
       box-shadow:
         0 18px 50px rgba(0,0,0,.35),
         0 0 0 1px rgba(255,255,255,.02) inset;
+      transition: transform 120ms ease;
     }
     .cipherText:active{ cursor: grabbing; }
 
-  /* Dynamic heat glow */
-.cipherCard.hot{
-  border-color: rgba(239,68,68,.85);
-  box-shadow:
-    0 0 calc(20px + var(--heat) * 35px) rgba(239,68,68,.45);
-}
-
-.cipherCard.warm{
-  border-color: rgba(245,158,11,.85);
-  box-shadow:
-    0 0 calc(12px + var(--heat) * 25px) rgba(245,158,11,.35);
-}
-
-.cipherCard.cold{
-  border-color: rgba(59,130,246,.7);
-  box-shadow:
-    0 0 calc(6px + var(--heat) * 18px) rgba(59,130,246,.35);
-}
-
-/* Subtle pulse when exact */
-.cipherCard.correct{
-  animation: pulseHot 380ms ease;
-}
-
-@keyframes pulseHot{
-  0% { box-shadow: 0 0 0 rgba(239,68,68,0); }
-  50% { box-shadow: 0 0 60px rgba(239,68,68,.6); }
-  100% { box-shadow: 0 0 0 rgba(239,68,68,0); }
-}
+    /* Dynamic heat glow */
+    .cipherCard.hot{
+      border-color: rgba(239,68,68,.85);
+      box-shadow:
+        0 0 calc(20px + var(--heat) * 35px) rgba(239,68,68,.45);
+    }
+    .cipherCard.warm{
+      border-color: rgba(245,158,11,.85);
+      box-shadow:
+        0 0 calc(12px + var(--heat) * 25px) rgba(245,158,11,.35);
+    }
+    .cipherCard.cold{
+      border-color: rgba(59,130,246,.7);
+      box-shadow:
+        0 0 calc(6px + var(--heat) * 18px) rgba(59,130,246,.35);
+    }
+    .cipherCard.correct{
+      animation: pulseHot 1000ms ease infinite;
+    }
+    @keyframes pulseHot{
+      0% { box-shadow: 0 0 60px rgba(239,68,68,.4); }
+      50% { box-shadow: 0 0 60px rgba(239,68,68,.45); }
+      100% { box-shadow: 0 0 60px rgba(239,68,68,.4); }
+    }
 
     .previewRow{
       margin-top: 14px;
@@ -452,6 +445,7 @@
       transform: translateX(-50%) translateY(-6px);
     }
 
+    /* IMPORTANT: only applied to gameplay panels now */
     .disabled{
       opacity:.55;
       pointer-events:none;
@@ -556,7 +550,6 @@
       .grid{ grid-template-columns: 1fr; }
       .brand, .topright{ min-width: unset; }
       .cipherText{ font-size: 40px; letter-spacing: 9px; }
-      .cipherStage{ grid-template-columns: 1fr; }
     }
     @media (max-width: 740px){
       .modalBody{ grid-template-columns: 1fr; }
@@ -580,7 +573,7 @@
       <div class="topright">
         <div class="metric timer">
           <div class="k">TIME</div>
-          <div class="v" id="timer">01:30</div>
+          <div class="v" id="timer">03:00</div>
         </div>
         <div class="metric score">
           <div class="k">SCORE</div>
@@ -602,9 +595,9 @@
           </div>
 
           <div class="seg" role="group" aria-label="Difficulty">
-            <button id="easyBtn" class="active">Easy</button>
-            <button id="medBtn">Medium</button>
-            <button id="hardBtn">Hard</button>
+            <button id="easyBtn" class="active" type="button">Easy</button>
+            <button id="medBtn" type="button">Medium</button>
+            <button id="hardBtn" type="button">Hard</button>
           </div>
         </div>
 
@@ -618,8 +611,8 @@
         </div>
 
         <div class="controls">
-          <button class="shiftBtn" id="leftBtn">← Shift</button>
-          <button class="shiftBtn" id="rightBtn">Shift →</button>
+          <button class="shiftBtn" id="leftBtn" type="button">← Shift</button>
+          <button class="shiftBtn" id="rightBtn" type="button">Shift →</button>
 
           <div class="helpText">
             Tip: try shifts near where the heat rises.
@@ -628,10 +621,10 @@
       </div>
 
       <!-- Right: answer building -->
-      <div class="card panel">
+      <div class="card panel" id="panel">
         <h2>Build the answer</h2>
         <p>
-          Click letters to fill the slots. Only correct letters turn green.  
+          Click letters to fill the slots. Only correct letters turn green.
           The ciphertext never changes — you rely on the preview + hot/cold to find the shift.
         </p>
 
@@ -641,9 +634,9 @@
         <div class="bank" id="bank"></div>
 
         <div class="panelControls">
-          <button class="btn" id="backBtn">⌫ Back</button>
-          <button class="btn" id="clearBtn">Clear</button>
-          <button class="btn" id="skipBtn">Skip</button>
+          <button class="btn" id="backBtn" type="button">⌫ Back</button>
+          <button class="btn" id="clearBtn" type="button">Clear</button>
+          <button class="btn" id="skipBtn" type="button">Skip</button>
         </div>
       </div>
     </div>
@@ -656,7 +649,7 @@
         <div class="modalTitle">
           <h3>How Cipher Sprint works</h3>
           <div class="mini">
-            You’re solving <strong>Caesar ciphers</strong>. Use the hot/cold meter to find the shift, then build the answer using the letter bank.
+            You’re solving <strong>Caesar ciphers</strong>. Use hot/cold to find the shift, then build the answer using the letter bank.
           </div>
         </div>
       </div>
@@ -668,8 +661,8 @@
             <li>The big text is the <strong>ciphertext</strong> (it stays the same).</li>
             <li>Use <code>←</code>/<code>→</code> or the buttons to change the <strong>shift</strong>.</li>
             <li>The preview reveals a few letters (difficulty controls how many).</li>
-            <li>The hot/cold indicator gets <strong>hotter</strong> as your shift approaches the correct one.</li>
-            <li>Fill the slots using the letter bank. Correct letters turn green.</li>
+            <li>The border glow gets <strong>hotter</strong> as your shift approaches the correct one.</li>
+            <li>Some revealed letters can lock into the answer (green) when you’re warm/hot.</li>
           </ul>
         </div>
 
@@ -685,8 +678,8 @@
       </div>
 
       <div class="modalFoot">
-        <button class="btn secondary" id="closeModalBtn">Close</button>
-        <button class="btn primary" id="startBtn">Start game</button>
+        <button class="btn secondary" id="closeModalBtn" type="button">Close</button>
+        <button class="btn primary" id="startBtn" type="button">Start game</button>
       </div>
     </div>
   </div>
@@ -706,16 +699,24 @@
     { answer:"APPLE",  shift:1 },
   ];
 
-  const DIFF_REVEAL = { easy:3, medium:2, hard:1 };
+  // Updated difficulty mapping:
+  // Easy = old Medium (2 letters)
+  // Medium = old Hard (1 letter)
+  // Hard = new hard (1 letter, NO prefill)
+  const DIFF_REVEAL = { easy:2, medium:1, hard:1 };
   let difficulty = "easy";
+
+  // Prefill policy per difficulty
+  const PREFILL_ALLOWED = { easy:true, medium:true, hard:false };
 
   let idx = 0;
   let currentShift = 0;
   let filled = [];
+  let locked = [];
   let cursor = 0;
 
   let score = 0;
-  let secondsLeft = 90;
+  let secondsLeft = 180;
   let timerId = null;
   let started = false;
 
@@ -739,8 +740,10 @@
     return `${m}:${r}`;
   }
 
-  function setDisabledAll(disabled){
-    el("shell").classList.toggle("disabled", disabled);
+  // Disable ONLY gameplay panels (NOT the whole shell)
+  function setGameplayDisabled(disabled){
+    el("cipherCard").classList.toggle("disabled", disabled);
+    el("panel").classList.toggle("disabled", disabled);
   }
 
   // Caesar helpers
@@ -754,6 +757,7 @@
       return ch;
     }).join("");
   }
+
   function caesarDecode(text, shift){
     const A = "A".charCodeAt(0);
     return text.toUpperCase().split("").map(ch=>{
@@ -769,7 +773,7 @@
     const d = Math.abs(a - b) % 26;
     return Math.min(d, 26 - d); // 0..13
   }
-  // keep this subtle; the indicator itself is deliberate
+
   function heatFromShift(current, optimal){
     const dist = circularDistance(current, optimal);
     const heat = 1 - (dist / 13); // 0..1
@@ -796,16 +800,16 @@
     return mask;
   }
 
-  function maskedPreview(decoded){
+  function getPreviewState(decoded){
     const n = DIFF_REVEAL[difficulty];
     const mask = revealMaskFor(decoded, n);
-    return decoded.split("").map((ch,i)=>{
+    const text = decoded.split("").map((ch,i)=>{
       if(!/[A-Z]/.test(ch)) return ch;
       return mask[i] ? ch : "_";
     }).join(" ");
+    return { mask, text };
   }
 
-  // UI rendering
   function renderSlots(){
     const answer = puzzles[idx].answer.toUpperCase();
     const slots = el("slots");
@@ -835,51 +839,58 @@
     unique.forEach(ch=>{
       const b = document.createElement("button");
       b.className = "key";
+      b.type = "button";
       b.textContent = ch;
       b.addEventListener("click", ()=>addLetter(ch));
       bank.appendChild(b);
     });
   }
 
-  function heatLabel(h){
-    if(h >= 0.86) return "HOT";
-    if(h >= 0.62) return "WARM";
-    if(h >= 0.38) return "COOL";
-    return "COLD";
-  }
-
   function updateHeatUI(h){
-  const card = el("cipherCard");
+    const card = el("cipherCard");
+    card.classList.remove("cold","warm","hot","correct");
 
-  card.classList.remove("cold","warm","hot","correct");
+    if(h > 0.96){
+      card.classList.add("hot","correct");
+    } else if(h > 0.65){
+      card.classList.add("hot");
+    } else if(h > 0.40){
+      card.classList.add("warm");
+    } else {
+      card.classList.add("cold");
+    }
 
-  if(h > 0.92){
-    card.classList.add("hot");
+    card.style.setProperty("--heat", h.toFixed(3));
   }
-  else if(h > 0.65){
-    card.classList.add("hot");
-  }
-  else if(h > 0.4){
-    card.classList.add("warm");
-  }
-  else{
-    card.classList.add("cold");
-  }
-
-  card.style.setProperty("--heat", h.toFixed(3));
-}
 
   function updateShiftUI(){
     const p = puzzles[idx];
     el("cipherText").textContent = p.cipher;
 
     const decoded = caesarDecode(p.cipher, currentShift);
-    el("preview").textContent = maskedPreview(decoded);
+    const answer = p.answer.toUpperCase();
+
+    const { mask, text } = getPreviewState(decoded);
+    el("preview").textContent = text;
     el("shiftLabel").textContent = `SHIFT: ${currentShift}`;
 
     const h = heatFromShift(currentShift, p.shift);
     updateHeatUI(h);
 
+    // Prefill ONLY when warm/hot AND difficulty allows it
+    if(PREFILL_ALLOWED[difficulty] && h > 0.65){
+      for(let i=0;i<answer.length;i++){
+        if(!locked[i] && mask[i] && decoded[i] === answer[i]){
+          locked[i] = true;
+          filled[i] = answer[i];
+        }
+      }
+    }
+
+    // keep cursor on next editable slot
+    while(cursor < filled.length && locked[cursor]) cursor++;
+
+    renderSlots();
     el("revealInfo").textContent = String(DIFF_REVEAL[difficulty]);
     el("wordPill").textContent = `Word ${idx+1}/${puzzles.length}`;
   }
@@ -889,6 +900,7 @@
     p.cipher = caesarEncode(p.answer, p.shift);
 
     filled = p.answer.toUpperCase().split("").map(()=> "");
+    locked = p.answer.toUpperCase().split("").map(()=> false);
     cursor = 0;
     currentShift = 0;
 
@@ -900,7 +912,10 @@
   // Gameplay
   function addLetter(letter){
     if(!started || secondsLeft <= 0) return;
+
+    while(cursor < filled.length && locked[cursor]) cursor++;
     if(cursor >= filled.length) return;
+
     filled[cursor] = letter;
     cursor++;
     renderSlots();
@@ -909,16 +924,24 @@
 
   function backspace(){
     if(!started || secondsLeft <= 0) return;
-    if(cursor <= 0) return;
-    cursor--;
-    filled[cursor] = "";
+
+    let i = cursor - 1;
+    while(i >= 0 && locked[i]) i--;
+    if(i < 0) return;
+
+    filled[i] = "";
+    cursor = i;
     renderSlots();
   }
 
   function clearAll(){
     if(!started || secondsLeft <= 0) return;
-    filled = puzzles[idx].answer.toUpperCase().split("").map(()=> "");
+
+    for(let i=0;i<filled.length;i++){
+      if(!locked[i]) filled[i] = "";
+    }
     cursor = 0;
+    while(cursor < filled.length && locked[cursor]) cursor++;
     renderSlots();
   }
 
@@ -943,14 +966,14 @@
     idx++;
     if(idx >= puzzles.length){
       toast("Run complete!");
-      setDisabledAll(true);
+      setGameplayDisabled(true);
       clearInterval(timerId);
       return;
     }
     initPuzzle();
   }
 
-  // Shift controls (arrows only; no scrubber)
+  // Shift controls
   function pulseCipher(){
     const c = el("cipherText");
     c.style.transform = "scale(1.02)";
@@ -971,7 +994,7 @@
     if(e.key === "ArrowRight") nudge(+1);
   });
 
-  // Optional: drag ciphertext left/right on desktop (keeps it feeling tactile)
+  // Optional drag on cipher text
   const cipherBox = el("cipherText");
   cipherBox.addEventListener("pointerdown", (e)=>{
     if(!started || secondsLeft <= 0) return;
@@ -998,6 +1021,19 @@
     el("easyBtn").classList.toggle("active", next==="easy");
     el("medBtn").classList.toggle("active", next==="medium");
     el("hardBtn").classList.toggle("active", next==="hard");
+
+    // In hard mode, NO prefill: unlock everything and clear any previously locked letters
+    // (keeps rules consistent when switching mid-word)
+    if(!PREFILL_ALLOWED[difficulty]){
+      for(let i=0;i<locked.length;i++){
+        if(locked[i]){
+          locked[i] = false;
+          filled[i] = ""; // remove auto-filled progress when entering hard
+        }
+      }
+      cursor = 0;
+    }
+
     updateShiftUI();
   }
   el("easyBtn").addEventListener("click", ()=>setDifficulty("easy"));
@@ -1013,18 +1049,14 @@
       if(secondsLeft === 0){
         clearInterval(timerId);
         toast("Time!");
-        setDisabledAll(true);
+        setGameplayDisabled(true);
       }
     }, 1000);
   }
 
   // Start modal behavior
-  function openModal(){
-    el("modalBack").style.display = "flex";
-  }
-  function closeModal(){
-    el("modalBack").style.display = "none";
-  }
+  function openModal(){ el("modalBack").style.display = "flex"; }
+  function closeModal(){ el("modalBack").style.display = "none"; }
 
   el("howBtn").addEventListener("click", openModal);
   el("closeModalBtn").addEventListener("click", closeModal);
@@ -1033,7 +1065,7 @@
     closeModal();
     if(started) return;
     started = true;
-    setDisabledAll(false);
+    setGameplayDisabled(false);
     startTimer();
     toast("Go!");
   });
@@ -1043,21 +1075,20 @@
   el("clearBtn").addEventListener("click", clearAll);
   el("skipBtn").addEventListener("click", skip);
 
-  // Init (game is locked until Start)
+  // Init (gameplay locked until Start)
   function init(){
-    // lock UI until start
-    setDisabledAll(true);
-    // but allow modal + start
+    setGameplayDisabled(true);
     el("modalBack").style.display = "flex";
-    // reset state
+
     idx = 0;
     score = 0;
-    secondsLeft = 90;
+    secondsLeft = 180;
     started = false;
+
     el("score").textContent = "0";
     el("timer").textContent = formatTime(secondsLeft);
+
     initPuzzle();
-    // heat indicator should be visible even before start
     updateShiftUI();
   }
 
